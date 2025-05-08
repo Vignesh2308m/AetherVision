@@ -1,171 +1,85 @@
 import numpy as np
-import math
 
 
-class UVSphere:
-    def __init__(self, radius=1.0, stacks=32, slices=64, position=(0.0, 0.0, 0.0), color=(1.0, 1.0, 1.0), schema=(True,True,True,True)):
-        self.radius = radius
-        self.stacks = stacks
-        self.slices = slices
-        self.center = np.array(position, dtype=np.float32)
-        self.color = color
-        self.schema = schema
-        self.vertex_len = 0
-        
-
+class BaseShape():
+    def __init__(self, func, radius, position, u_range, v_range, schema, color):
         self.vertices = []
         self.indices = []
 
-        self._generate_geometry()
+        self.radius = radius
+        self.position = position
+        self.u_range = u_range
+        self.v_range = v_range
+        self.schema = schema
+        self.color = color
+        self.func = func
 
-    def _generate_geometry(self):
-        r, g, b = self.color
-        tx, ty, tz = self.center
-        
-        schema_val = (3, 3, 2, 3)
+        self._generate_vertices()    
+        self._generate_indices()
 
-        for i in range(4):
-            if self.schema[i]:
-                self.vertex_len += schema_val[i]
-        
-        if self.schema[0] == True:
-            px = tx
-            py = ty + self.radius
-            pz = tz 
-            self.vertices.extend([px, py, pz])
-    
-        if self.schema[1] == True:
-            nx, ny, nz = 0.0, 1.0, 0.0
-            self.vertices.extend([nx, ny, nz]) 
+    def _generate_vertices(self):
+        u_min, u_max, u_step = self.u_range
+        v_min, v_max, v_step = self.v_range
 
-        if self.schema[2] == True:
-            u = 0.0
-            v = 0.5
-            self.vertices.extend([u, v]) 
+        u_line= np.linspace(u_min, u_max, u_step)
+        v_line= np.linspace(v_min, v_max, v_step)
 
-        if self.schema[3] == True:
-            self.vertices.extend([r, g, b]) 
-
-
-        
-        # Top center vertex
-        # self.vertices.extend([tx, ty + self.radius, tz, 0.0, 1.0, 0.0, 0.5, 0.0, r, g, b])
-        top_index = 0
-
-        # Generate sphere vertices
-        for i in range(1, self.stacks):
-            theta = i * math.pi / self.stacks
-            sin_theta = math.sin(theta)
-            cos_theta = math.cos(theta)
-
-            for j in range(self.slices + 1):
-                phi = j * 2 * math.pi / self.slices
-                sin_phi = math.sin(phi)
-                cos_phi = math.cos(phi)
-
-                x = self.radius * sin_theta * cos_phi
-                y = self.radius * cos_theta
-                z = self.radius * sin_theta * sin_phi
-
+        for i in u_line:
+            for j in v_line:
+                x, y, z = self.func(i,j)
 
                 if self.schema[0] == True:
-                    px = x + tx
-                    py = y + ty
-                    pz = z + tz 
-                    self.vertices.extend([px, py, pz])
-    
+                    self._add_pos(x,y,z)
+                
                 if self.schema[1] == True:
-                    nx, ny, nz = x / self.radius, y / self.radius, z / self.radius
-                    self.vertices.extend([nx, ny, nz]) 
-
+                    self._add_norm(x,y,z)
+                
                 if self.schema[2] == True:
-                    u = j / self.slices
-                    v = i / self.stacks
-                    self.vertices.extend([u, v]) 
-
+                    self._add_tex(i, j)
+                
                 if self.schema[3] == True:
-                    self.vertices.extend([r, g, b]) 
-        
-        if self.schema[0] == True:
-            px = tx
-            py = ty - self.radius
-            pz = tz 
-            self.vertices.extend([px, py, pz])
-    
-        if self.schema[1] == True:
-            nx, ny, nz = 0.0, -1.0, 0.0
-            self.vertices.extend([nx, ny, nz]) 
+                    self._add_color(x,y,z)
 
-        if self.schema[2] == True:
-            u = 0.0
-            v = 0.5
-            self.vertices.extend([u, v]) 
+    def _generate_indices(self):
+        _, _, u_step = self.u_range  # number of rows
+        _, _, v_step = self.v_range  # number of columns
 
-        if self.schema[3] == True:
-            self.vertices.extend([r, g, b]) 
+        for i in range(u_step - 1):
+            for j in range(v_step - 1):
+                top_left     = i * v_step + j
+                top_right    = top_left + 1
+                bottom_left  = (i + 1) * v_step + j
+                bottom_right = bottom_left + 1
 
+                # two triangles per quad
+                self.indices.extend([
+                    top_left, bottom_left, top_right,
+                    top_right, bottom_right, bottom_left
+                ])
 
-        # Bottom center vertex
-        bottom_index = len(self.vertices) // self.vertex_len
-        # self.vertices.extend([tx, ty - self.radius, tz, 0.0, -1.0, 0.0, 0.5, 1.0, r, g, b])
+    def _add_pos(self, x, y, z):
+        px, py, pz = self.position
+        r = self.radius
+        self.vertices.extend([(x+px)*r, (y+py)*r, (z+pz)*r])        
+        pass
 
-        # Generate indices for middle quads
-        for i in range(self.stacks - 2):
-            for j in range(self.slices):
-                first = 1 + i * (self.slices + 1) + j
-                second = first + self.slices + 1
-                self.indices.extend([first, second, first + 1])
-                self.indices.extend([second, second + 1, first + 1])
+    def _add_norm(self, x, y, z):
+        self.vertices.extend([x, y, z])        
+        pass
+    def _add_tex(self, u, v):
+        self.vertices.extend([u, v])        
+        pass
+    def _add_color(self, x, y, z):
+        r, g, b = self.color
+        self.vertices.extend([r, g, b])        
+        pass
 
-        # Top cap
-        for j in range(self.slices):
-            first = 1 + j
-            next_ = 1 + (j + 1) % (self.slices + 1)
-            self.indices.extend([top_index, first, next_])
-
-        # Bottom cap
-        base = 1 + (self.stacks - 2) * (self.slices + 1)
-        for j in range(self.slices):
-            first = base + j
-            next_ = base + (j + 1) % (self.slices + 1)
-            self.indices.extend([first, bottom_index, next_])
-
-    def get_data(self):
-        return (
-            np.array(self.vertices, dtype=np.float32),
-            np.array(self.indices, dtype=np.uint32)
+    def get_vertices(self):
+        return np.array(
+            self.vertices , dtype=np.float32
         )
 
-    def translate(self, position):
-        translation = np.array(position, dtype=np.float32) - self.center
-        self.center += translation
-
-        for i in range(0, len(self.vertices), self.vertex_len):  # step by vertex structure size
-            self.vertices[i] += translation[0]  # x
-            self.vertices[i + 1] += translation[1]  # y
-            self.vertices[i + 2] += translation[2]  # z
-
-        return self.get_data()
-
-    def rotate(self, axis, angle_degrees):
-            angle_radians = math.radians(angle_degrees)
-            axis = np.array(axis, dtype=np.float32)
-            axis = axis / np.linalg.norm(axis)
-            x, y, z = axis
-            c = math.cos(angle_radians)
-            s = math.sin(angle_radians)
-            t = 1 - c
-    
-            # Rotation matrix (Rodrigues' formula)
-            rot = np.array([
-                [t*x*x + c,     t*x*y - s*z, t*x*z + s*y],
-                [t*x*y + s*z, t*y*y + c,     t*y*z - s*x],
-                [t*x*z - s*y, t*y*z + s*x, t*z*z + c    ]
-            ], dtype=np.float32)
-    
-            for i in range(0, len(self.vertices), 12):
-                pos = np.array(self.vertices[i:i+3]) - self.center
-                rotated = rot @ pos + self.center
-                self.vertices[i:i+3] = rotated.tolist()
-    
-            return self.get_data()
+    def get_indices(self):
+        return np.array(
+            self.indices , dtype=np.uint32
+        )
