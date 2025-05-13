@@ -2,10 +2,10 @@ import moderngl as mgl
 
 
 class VAO():
-    def __init__(self, ctx, prog, vbo, ibo, mode, params =[]):
+    def __init__(self, ctx, prog, buffer_format, ibo, mode, params =[]):
 
         self.prog = prog
-        self.vbo = vbo
+        self.buffer_format = buffer_format
         self.ibo = ibo
         self.mode = mode
         self.ctx : mgl.Context = ctx
@@ -19,7 +19,7 @@ class VAO():
 
         self.vao = self.ctx.vertex_array(
             self.prog,
-            self.vbo, *self.params,
+            self.buffer_format,
             index_buffer = self.ibo
         ) 
 

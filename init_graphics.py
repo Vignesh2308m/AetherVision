@@ -10,7 +10,6 @@ class Graphics():
 
     def __init__(self, width, height,data):
         self.ctx = mgl.create_standalone_context()
-
         
         # Create a color texture
         self.color_tex = self.ctx.texture((width, height), components=4, dtype='f1')
@@ -35,8 +34,9 @@ class Graphics():
         self.fbo.use()    # Bind framebuffer
         self.ctx.clear(0.0, 0.0, 0.0, 1.0)  # Clear it
 
+        
         for i in self.vao_list:
-            i['vao'].render(mode=i['mode'])
+            i['vao'].render(mode=i['mode'], instances = 1000)
         pass
 
         self.pixels = self.fbo.read(components=4)
@@ -59,4 +59,3 @@ class Graphics():
                 "mode": mode
             }
         )
-    

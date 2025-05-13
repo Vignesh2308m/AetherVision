@@ -35,8 +35,9 @@ class Shader:
             #version 330 core
 
             in vec3 in_pos;
-            in vec3 in_color;
             in vec3 in_norm;
+            in vec3 in_color;
+            in vec3 in_offset;
             
             out vec3 v_pos;
             out vec3 v_color;
@@ -47,7 +48,7 @@ class Shader:
             uniform mat4 projection;
             
             void main() {
-                vec4 world_pos = model * vec4(in_pos, 1.0);
+                vec4 world_pos = model * vec4(in_pos + in_offset, 1.0);
                 v_pos = vec3(world_pos);
                 v_color = in_color;
                 v_norm = mat3(transpose(inverse(model))) * in_norm; // normal transformation
@@ -66,15 +67,16 @@ class Shader:
             
             out vec4 FragColor;
             
-            uniform vec3 lightPos = vec3(1.0, 2.0, 1.0);
-            uniform float ambientStrength = 0.1;
+            uniform vec3 lightPos = vec3(-1.0, -1.0, -1.0);
+            uniform float ambientStrength = 0.3;
             
             void main() {
                 vec3 norm = normalize(v_norm);
                 vec3 lightDir = normalize(lightPos - v_pos);
             
                 float diff = max(dot(norm, lightDir), 0.0);
-                vec3 color = v_color * (ambientStrength + diff);
+                vec3 amp = vec3(1.0, 1.0, 1.0);
+                vec3 color = v_color * amp * (ambientStrength + diff);
                 
                 FragColor = vec4(color, 1.0);
             }

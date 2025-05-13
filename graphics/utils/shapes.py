@@ -1,10 +1,12 @@
 import numpy as np
+import time
 
 
 class BaseShape():
     def __init__(self, func, radius, position, u_range, v_range, schema, color):
         self.vertices = []
         self.indices = []
+        self.elements = []
 
         self.radius = radius
         self.position = position
@@ -14,8 +16,10 @@ class BaseShape():
         self.color = color
         self.func = func
 
+        start = time.time() 
         self._generate_vertices()    
         self._generate_indices()
+        print("Time taken to create shape", time.time()-start)
 
     def _generate_vertices(self):
         u_min, u_max, u_step = self.u_range
@@ -83,3 +87,45 @@ class BaseShape():
         return np.array(
             self.indices , dtype=np.uint32
         )
+
+    def get_element(self):
+        return np.array(
+            self.elements , dtype=np.float32
+        )
+
+
+
+
+class UVSphere():
+    def __init__(self, radius, stacks, slices, position, schema, color):
+        uv_sphere = BaseShape(func= self.func, radius=radius,
+                              u_range=[0,np.pi,stacks], 
+                              v_range=[0,2*np.pi,slices],
+                              position=position, 
+                              schema= schema, color=color)
+        
+        self.vert_func = uv_sphere.get_vertices
+        self.ind_func = uv_sphere.get_indices
+
+    @staticmethod
+    def func(u, v):
+        return [
+        np.sin(u) * np.cos(v),
+        np.sin(u) * np.sin(v),
+        np.cos(u)
+    ]
+
+    def get_data(self):
+        return self.vert_func(), self.ind_func() 
+
+
+class Line():
+    def __init__(self, pos1, pos2, color):
+        self.pos1 = pos1
+        self.pos2 = pos2
+
+        self.color = color
+
+    def get_data(self):
+
+        pass

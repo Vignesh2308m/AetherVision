@@ -1,4 +1,5 @@
 from dearpygui import dearpygui as dpg
+from ai.model_load import Load_AI
 from init_ui import ViewPort
 from init_graphics import Graphics
 from init_ai import AI_Interface
@@ -17,6 +18,7 @@ def add_graphics(color_tex):
     pass
 
 def main():
+    l = Load_AI()
     a = AI_Interface() 
     g = Graphics(800,300,a.data)
     g.render()
