@@ -2,8 +2,9 @@ import moderngl as mgl
 
 
 class VAO():
-    def __init__(self, ctx, prog, buffer_format, ibo, mode, params =[]):
-
+    def __init__(self, ctx, prog, buffer_format, ibo, mode, params =[], instances=1):
+        
+        self.instances = instances
         self.prog = prog
         self.buffer_format = buffer_format
         self.ibo = ibo
@@ -25,11 +26,8 @@ class VAO():
 
         pass
 
-    def get_vao(self):
-        return {
-            'vao': self.vao,
-            'mode': self.mode
-        }
+    def render_vao(self): 
+        self.vao.render(mode=self.mode, instances=self.instances)
 
     def update_prog(self, new_prog):
         self.prog = new_prog
