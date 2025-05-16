@@ -11,11 +11,12 @@ class Instance():
         pass
 
     def _generate_instance(self):
-        del_x = self.end[0] - self.start[0]
-        del_y = self.end[1] - self.start[1]
-        del_z = self.end[2] - self.start[2]
-
         inst_x , inst_y, inst_z = self.num_of_instances
+
+        del_x = (self.end[0] - self.start[0])/inst_x
+        del_y = (self.end[1] - self.start[1])/inst_y
+        del_z = (self.end[2] - self.start[2])/inst_z
+
 
         x, y, z = self.start
         for i in range(inst_x*inst_y*inst_z):

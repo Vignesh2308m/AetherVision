@@ -12,7 +12,7 @@ class Linear_Regression():
 
         self.shape = UVSphere(radius=0.1, stacks=16,slices=16,position=(0.0, 0.0, 0.0),schema=(True,True,False,True), color=(1.0,0.0,0.1))
         vert, ind = self.shape.get_data()
-        self.instances = Instance((10,10,10), (-0.5,-0.5,-0.5), (0.5,0.5,0.5))
+        self.instances = Instance((10,10,10), (-0.5,-0.5,-0.5), (1.5,1.5,1.5))
         elem = self.instances.get_data()
         self.buffer = Buffer(self.ctx, vert, ind, elem)
         vbo, ibo, ebo = self.buffer.get_buffer()

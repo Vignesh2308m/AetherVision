@@ -10,22 +10,22 @@ from graphics.LinearRegression import Linear_Regression
 
 def add_graphics(color_tex):
     with dpg.texture_registry(show=False):
-        dpg.add_raw_texture(800,300,color_tex,format=dpg.mvFormat_Float_rgba, tag="img")
+        dpg.add_raw_texture(800,600,color_tex,format=dpg.mvFormat_Float_rgba, tag="img")
 
     with dpg.window(label="window"):
-        dpg.add_image(texture_tag="img",width=800,height=300)
+        dpg.add_image(texture_tag="img",width=800,height=600)
 
     pass
 
 def main():
     l = Load_AI()
     a = AI_Interface() 
-    g = Graphics(800,300,a.data)
+    g = Graphics(800,600,a.data)
     g.render()
     v = ViewPort(800,600)
     
     func = partial(add_graphics, g.data)
-    v.add_window("Test", 800, 300,func)
+    v.add_window("Test", 800, 600,func)
     v.run()
     pass
 
