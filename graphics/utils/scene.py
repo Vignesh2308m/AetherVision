@@ -1,6 +1,6 @@
 import moderngl as mgl
 import glm
-
+import numpy as np
 
 
 
@@ -20,7 +20,8 @@ class Scene():
         self.eye = glm.vec3(0.0,0.0,5.0)
         self.center = glm.vec3(0.0,0.0,0.0) 
         self.up = glm.vec3(0.0,1.0,5.0) 
-        
+
+        self._generate_scene() 
 
     def _generate_scene(self):
         self.color_tex = self.ctx.texture((self.width, self.height), components=4, dtype='f1')
@@ -39,5 +40,11 @@ class Scene():
         self.vao_list.append(v)
     
     def render(self):
+        self.fbo.use()    # Bind framebuffer
+        self.ctx.clear(0.0, 0.0, 0.0, 1.0)  # Clear it
+
         for i in self.vao_list:
             i.render_vao()
+
+        self.pixels = self.fbo.read(components=4)
+        self.data = np.frombuffer(self.pixels, dtype=np.uint8).astype(np.float32) / 255.0
